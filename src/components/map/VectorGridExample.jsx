@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { Pane, GeoJSON } from 'react-leaflet';
-// import VectorGrid from '../../package/react-leaflet-vectorgrid/VectorGrid';
+import VectorGrid from '../../package/react-leaflet-vectorgrid/VectorGrid';
 // import VectorGrid from '../../package/react-leaflet-vectorgrid/VectorGrid.Slicer';
-import VectorGrid from 'react-leaflet-vectorgrid';
+// import VectorGrid from 'react-leaflet-vectorgrid';
 
 const ndcdb_lot = require('./ndcdb_lot_sample.json');
 
