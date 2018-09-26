@@ -5,8 +5,8 @@ import _ from 'lodash';
 
 export default class VectorGrid extends MapLayer {
 	createLeafletElement(props) {
-		const { map, pane, layerContainer } = this.context;
-		const { data, zIndex, type = 'slicer', style, hoverStyle, activeStyle, onClick, onMouseover, onMouseout, onDblclick, interactive = true, vectorTileLayerStyles, url, maxNativeZoom, subdomains, key, token } = props;
+		const { map, pane, layerContainer } = props.leaflet || this.context;
+		const { data, zIndex, type = 'slicer', style, hoverStyle, activeStyle, onClick, onMouseover, onMouseout, onDblclick, interactive = true, vectorTileLayerStyles, url, maxNativeZoom, maxZoom, minZoom, subdomains, key, token } = props;
 
 		// get feature base styling
 		const baseStyle = (properties, zoom) => {
@@ -27,14 +27,14 @@ export default class VectorGrid extends MapLayer {
 		};
 		this.highlight = null;
 		this.active = null;
-		console.log('maxZoom:', map.getMaxZoom());
 
 		let vectorGrid = L.vectorGrid.slicer(data, {
 			interactive,
 			zIndex: zIndex || Number(layerContainer._panes[pane].style.zIndex),
 			getFeatureId: feature => this._getFeatureId(feature),
 			rendererFactory: L.svg.tile,
-			maxZoom: map.options.maxZoom || null,
+			maxZoom: maxZoom || map.getMaxZoom(),
+			minZoom: minZoom || map.getMinZoom(),
 			vectorTileLayerStyles: vectorTileLayerStyles || {
 				sliced: (properties, zoom) => {
 					const bs = baseStyle(properties, zoom);
@@ -56,7 +56,8 @@ export default class VectorGrid extends MapLayer {
 				zIndex: zIndex || Number(layerContainer._panes[pane].style.zIndex),
 				getFeatureId: feature => this._getFeatureId(feature),
 				rendererFactory: L.svg.tile,
-				maxZoom: map.options.maxZoom || null
+				maxZoom: maxZoom || map.getMaxZoom(),
+				minZoom: minZoom || map.getMinZoom()
 			});
 		}
 
@@ -88,8 +89,6 @@ export default class VectorGrid extends MapLayer {
 			.on('click', (e) => {
 				const { properties } = e.layer;
 				const featureId = this._getFeatureId(e.layer);
-				// console.log(e.layer);
-				// map.fitBounds(e.layer._pxBounds);
 
 				this._propagateEvent(onClick, e);
 
@@ -115,7 +114,7 @@ export default class VectorGrid extends MapLayer {
 	}
 
 	componentDidMount() {
-		const { layerContainer } = this.context;
+		const { layerContainer } = this.props.leaflet || this.context;
 		const { tooltipClassName = '', tooltip = null, popup = null } = this.props;
 		this.leafletElement.addTo(layerContainer);
 		// bind tooltip
@@ -162,7 +161,6 @@ export default class VectorGrid extends MapLayer {
 		const featureId = this._getFeatureId(e.layer);
 		const feature = this.getFeature(featureId);
 		const event = _.cloneDeep(e);
-		// const event = _.clone(e);
 		const mergedEvent = _.merge(event.target, { feature });
 		eventHandler(event);
 	}
@@ -191,6 +189,7 @@ export default class VectorGrid extends MapLayer {
 
 	getFeature(featureId) {
 		const { data, idField } = this.props;
+		if (_.isEmpty(data)) return {};
 		const feature = _.find(data.features, ({ properties }) => properties[idField] === featureId);
 		return _.cloneDeep(feature);
 	}

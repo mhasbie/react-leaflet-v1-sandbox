@@ -1,3 +1,3 @@
 import VectorGrid from './VectorGrid';
 
-export { VectorGrid };
+export default VectorGrid;
